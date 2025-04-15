@@ -1,0 +1,87 @@
+/* Font and Text Styles */
+p {
+    font-weight: bold;
+    font-size: 20px;
+    color: #333;
+    line-height: 1.6; /* Improved text spacing */
+}
+
+#top {
+    text-decoration: underline;
+    color: #002E5D; /* Changed to BYU blue */
+}
+
+h1, h2, h3 {
+    color: #002E5D; /* BYU blue for all headings */
+}
+
+.emphasizedText {
+    font-style: italic;
+    color: gray;
+}
+
+/* Body Styles */
+body {
+    background-color: lightgrey;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    text-align: center;
+    border: 5px solid black;
+    margin: 0 auto 20px; /* Centered page */
+    padding: 10px;
+    color: #222;
+    max-width: 1200px; /* Centered content */
+}
+
+/* List Styles */
+.centered-list {
+    padding-left: 0;
+    list-style-position: outside;
+    margin: 0 auto;
+    display: table;
+    text-align: left;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    padding: 15px 0; /* Consistent list padding */
+}
+
+/* Div Styles for Positioning and Layout */
+#header-div {
+    color: white;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
+.content-div {
+    background-color: white;
+    margin: 15px auto;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 800px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.sidebar-div {
+    background-color: #f0f0f0;
+    float: left;
+    width: 25%;
+    padding: 15px;
+    margin-right: 15px;
+    border-right: 2px solid #ccc;
+}
+
+#footer-div {
+    clear: both;
+    border-top: 2px solid #002E5D; /* BYU blue border */
+    padding: 20px 0; /* Better footer spacing */
+    margin-top: 30px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+img {
+    border: 2px solid #002E5D; /* BYU blue border for Cosmo */
+}
+
+.media-div iframe {
+    margin-top: 20px; /* Space above YouTube embed */
+}

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pac-Man with Smart Ghosts and Dots</title>
+  <style>
+    body {
+      background: black;
+      color: white;
+      text-align: center;
+      font-family: sans-serif;
+    }
+    #game {
+      display: grid;
+      grid-template-columns: repeat(40, 15px);
+      grid-template-rows: repeat(20, 15px);
+      margin: 10px auto;
+    }
+    .cell {
+      width: 15px;
+      height: 15px;
+      box-sizing: border-box;
+    }
+    .wall { background: #333; }
+    .empty { background: black; }
+    .dot { background: yellow; border-radius: 50%; width: 5px; height: 5px; margin: auto; }
+    .pacman {
+      background: yellow;
+      border-radius: 50%;
+    }
+    .ghost0 { background: red; border-radius: 50%; }
+    .ghost1 { background: cyan; border-radius: 50%; }
+    .ghost2 { background: pink; border-radius: 50%; }
+    .ghost3 { background: orange; border-radius: 50%; }
+    #lives { font-size: 20px; }
+  </style>
+</head>
+<body>
+<h1>Ethan's PacMan Clone Game</h1>
+<div id="lives">Lives: 3</div>
+<div id="game"></div>
+<script>
+const width = 40, height = 20;
+const grid = document.getElementById('game');
+const livesDisplay = document.getElementById('lives');
+const layout = Array(width * height).fill(1);
+const dotState = Array(width * height).fill(false);
+const cells = [];
+let pacmanPos = Math.floor(width * height / 2);
+const ghostStartPositions = [45, 310, 680, 780];
+const ghosts = [];
+let lives = 3;
+
+function addWallBlock(start, direction, length) {
+  for (let i = 0; i < length; i++) {
+    const pos = start + i * direction;
+    if (pos > 0 && pos < width * height) layout[pos] = 0;
+  }
+}
+
+for (let i = 0; i < layout.length; i++) {
+  if (i < width || i >= width * (height - 1) || i % width === 0 || i % width === width - 1)
+    layout[i] = 0;
+}
+
+for (let i = 0; i < 50; i++) {
+  const horizontal = Math.random() < 0.5;
+  const len = 3 + Math.floor(Math.random() * 3);
+  let row = 1 + Math.floor(Math.random() * (height - 2));
+  let col = 1 + Math.floor(Math.random() * (width - 2));
+  if (horizontal && col + len < width - 1) addWallBlock(row * width + col, 1, len);
+  else if (!horizontal && row + len < height - 1) addWallBlock(row * width + col, width, len);
+}
+
+layout[pacmanPos] = 1;
+
+for (let i = 0; i < layout.length; i++) {
+  if (layout[i] === 1) dotState[i] = true;
+}
+
+function drawGrid() {
+  grid.innerHTML = '';
+  for (let i = 0; i < layout.length; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell ' + (layout[i] === 0 ? 'wall' : 'empty');
+    const wrapper = document.createElement('div');
+    if (dotState[i]) {
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+      wrapper.appendChild(dot);
+    }
+    cell.appendChild(wrapper);
+    grid.appendChild(cell);
+    cells[i] = cell;
+  }
+}
+
+function drawCharacters() {
+  cells.forEach((cell, i) => {
+    cell.className = cell.className.replace(/\bpacman|ghost\d\b/g, '');
+    if (layout[i] === 1 && dotState[i]) {
+      if (!cell.querySelector('.dot')) {
+        const dot = document.createElement('div');
+        dot.className = 'dot';
+        cell.firstChild.appendChild(dot);
+      }
+    } else {
+      const existingDot = cell.querySelector('.dot');
+      if (existingDot) existingDot.remove();
+    }
+  });
+  cells[pacmanPos].classList.add('pacman');
+  ghosts.forEach((ghost, i) => cells[ghost.position].classList.add(`ghost${i}`));
+}
+
+function resetPositions() {
+  pacmanPos = Math.floor(width * height / 2);
+  ghosts.forEach((ghost, i) => ghost.position = ghostStartPositions[i]);
+  drawCharacters();
+}
+
+function checkCollision() {
+  for (let ghost of ghosts) {
+    if (ghost.position === pacmanPos) {
+      lives--;
+      livesDisplay.innerText = `Lives: ${lives}`;
+      if (lives <= 0) {
+        alert("Game Over!");
+        clearInterval(ghostInterval);
+        document.removeEventListener('keydown', movePacman);
+      } else resetPositions();
+      return;
+    }
+  }
+}
+
+function checkWin() {
+  if (dotState.every(dot => !dot)) {
+    alert("You Won!");
+    clearInterval(ghostInterval);
+    document.removeEventListener('keydown', movePacman);
+  }
+}
+
+function movePacman(e) {
+  let nextPos = pacmanPos;
+  if (e.key === 'ArrowUp') nextPos -= width;
+  else if (e.key === 'ArrowDown') nextPos += width;
+  else if (e.key === 'ArrowLeft') nextPos -= 1;
+  else if (e.key === 'ArrowRight') nextPos += 1;
+  if (layout[nextPos] === 1) {
+    pacmanPos = nextPos;
+    if (dotState[pacmanPos]) dotState[pacmanPos] = false;
+    checkCollision();
+    checkWin();
+    drawCharacters();
+  }
+}
+
+function smartGhostMove(ghost, i) {
+  const dirs = [-1, 1, -width, width];
+  let target;
+  if (i === 0) target = pacmanPos;
+  else if (i === 1) target = pacmanPos + 4;
+  else if (i === 2) target = pacmanPos + (ghost.position - pacmanPos) * -1;
+  else target = Math.abs(ghost.position - pacmanPos) < 15 ? ghostStartPositions[3] : pacmanPos;
+
+  let bestMove = ghost.position;
+  let minDist = Infinity;
+  dirs.forEach(dir => {
+    const newPos = ghost.position + dir;
+    if (layout[newPos] === 1) {
+      const dx = Math.abs((newPos % width) - (target % width));
+      const dy = Math.abs(Math.floor(newPos / width) - Math.floor(target / width));
+      const dist = dx + dy;
+      if (dist < minDist) {
+        minDist = dist;
+        bestMove = newPos;
+      }
+    }
+  });
+  ghost.position = bestMove;
+  checkCollision();
+}
+
+function moveGhosts() {
+  ghosts.forEach((ghost, i) => {
+    smartGhostMove(ghost, i);
+  });
+  drawCharacters();
+}
+
+function spawnGhosts() {
+  ghostStartPositions.forEach((pos, i) => {
+    setTimeout(() => ghosts.push({ position: pos }), i * 5000);
+  });
+}
+
+document.addEventListener('keydown', movePacman);
+drawGrid();
+drawCharacters();
+spawnGhosts();
+const ghostInterval = setInterval(moveGhosts, 1000);
+</script>
+</body>
+<footer>
+    <button onclick="window.location.href='scratch.html';">Go to Scratch Page</button>
+</footer>
+</html>
